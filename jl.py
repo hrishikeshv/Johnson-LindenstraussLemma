@@ -23,10 +23,13 @@ def randomSubspace(subspaceDimension, ambientDimension, method="hadamard"):
         H = hadamard(ambientDimension)
         custm = stats.rv_discrete(values=([-1,1],[1.0/2, 1.0/2]))
         D = np.diag(custm.rvs(size=ambientDimension))
-        return P.dot(H.dot(D))
+        unnorm_matrix = P.dot(H.dot(D))
+        # print(unnorm_matrix[0])
+        return unnorm_matrix / math.sqrt(ambientDimension)
         # unnorm_matrix =  P.dot(H.dot(D))
         # l2norm = np.sqrt((unnorm_matrix * unnorm_matrix).sum(axis=1))
         # ret_matrix = unnorm_matrix / l2norm.reshape(unnorm_matrix.shape[0],1)
+        # print(ret_matrix[0])
         # return ret_matrix
 
 def checkTheorem(oldData, newData, epsilon):
@@ -57,8 +60,8 @@ def jl(data, subspaceDim):
 
 if __name__ == '__main__':
     size = 1000
-    n = 2048
-    eps = 0.4
+    n = 4096
+    eps = 0.25
     method = "gaussian"
     datatype = "dense"
     subspaceDim = 0
