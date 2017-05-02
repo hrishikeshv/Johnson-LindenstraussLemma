@@ -4,6 +4,8 @@ from itertools import combinations
 from matplotlib import pyplot as plt
 from scipy.linalg import circulant
 from scipy import stats
+from scipy.linalg import hadamard
+import argparse
 
 def randomSubspace(subspaceDimension, ambientDimension, method="gaussian"):
     if method == "gaussian":
@@ -15,7 +17,13 @@ def randomSubspace(subspaceDimension, ambientDimension, method="gaussian"):
         return cmatrix.dot(dmatrix)
     elif method == "sparse":
         custm = stats.rv_discrete(values=([-1,0,1],[1.0/6,2.0/3,1.0/6]))
-        return custm.rvs(size=(subspaceDimension, ambientDimension))
+        return math.sqrt(3)*custm.rvs(size=(subspaceDimension, ambientDimension))
+    elif method == "hadamard":
+        P = np.random.normal(0, 1, size=(subspaceDimension, ambientDimension))
+        H = hadamard(ambientDimension)
+        custm = stats.rv_discrete(values=([-1,1],[1.0/2, 1.0/2]))
+        D = np.diag(custm.rvs(size=ambientDimension))
+        return (1/math.sqrt(ambientDimension))*P.dot(H.dot(D))
 
 def checkTheorem(oldData, newData, epsilon):
     numBadPoints = 0
@@ -37,21 +45,26 @@ def checkTheorem(oldData, newData, epsilon):
     plt.show()
     return (1.0*numBadPoints)/count
 
-def jl(data, subspaceDim):
+def jl(data, subspaceDim, method):
     origDim = len(data[0])
-    A = randomSubspace(subspaceDim, origDim)
+    A = randomSubspace(subspaceDim, origDim, method)
     transformed = (1 / math.sqrt(subspaceDim)) * A.dot(data.T).T
     return transformed
 
 if __name__ == '__main__':
-    size = 1000
-    n = 4096
-    eps = 0.05
-    method = "circulant"
-    datatype = "data"
-    if method == "gaussian":
-        subspaceDim = int(math.ceil(2.0*math.log(size)/eps**2))
-    elif method == "sparse":
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--method', type=str, default="gaussian")
+	parser.add_argument('--data', type=str, default="dense")
+	parser.add_argument('--size', type=int, default=100)
+	parser.add_argument('--n', type=int, default=4096)
+	parser.add_argument('--eps', type=float, default=0.25)
+    size = args.size
+    n = args.n
+    eps = args.eps
+    method = args.method
+    datatype = args.data
+    if not method == "circulant":
         subspaceDim = int(math.ceil(2.0*math.log(size)/eps**2))
     elif method == "circulant":
         subspaceDim = int(math.ceil(2.0*(math.log(size))/eps**2))
@@ -61,6 +74,7 @@ if __name__ == '__main__':
         indlist = np.random.choice(n, 10, replace=False)
         data = np.zeros((size,n))
         for ind in indlist:
-            data[ind] = np.random.uniform(-1,1,n)
-    trans = jl(data,subspaceDim)
+            data[:,ind] = np.random.uniform(-1,1,size)
+    print(subspaceDim)
+    trans = jl(data,subspaceDim,method)
     print(checkTheorem(data, trans, eps))
