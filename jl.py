@@ -3,6 +3,7 @@ import math
 from itertools import combinations
 from matplotlib import pyplot as plt
 from scipy.linalg import circulant
+from scipy import stats
 
 def randomSubspace(subspaceDimension, ambientDimension, method="gaussian"):
     if method == "gaussian":
@@ -11,6 +12,9 @@ def randomSubspace(subspaceDimension, ambientDimension, method="gaussian"):
         cmatrix = circulant(np.random.normal(0, 1, ambientDimension))[:subspaceDimension]
         dmatrix = np.diag(bernoulli.rvs(0.5,ambientDimension))
         return cmatrix.dot(dmatrix)
+    elif method == "sparse":
+        custm = stats.rv_discrete(values=([-1,0,1],[1.0/6,2.0/3,1.0/6]))
+        return custm.rvs(size=(subspaceDimension, ambientDimension))
 
 def checkTheorem(oldData, newData, epsilon):
     numBadPoints = 0
@@ -42,12 +46,14 @@ if __name__ == '__main__':
     size = 1000
     n = 4096
     eps = 0.05
-    method = "circulant"
+    method = "sparse"
     datatype = "dense"
     if method == "gaussian":
         subspaceDim = int(math.ceil(2.0*math.log(size)/eps**2))
+    elif method == "sparse":
+        subspaceDim = int(math.ceil(2.0*math.log(size)/eps**2))
     elif method == "circulant":
-        subspaceDim = int(math.ceil((math.log(size)**3)/eps**2))
+        subspaceDim = int(math.ceil((math.log(size)**2)/eps**2))
     if datatype == "dense":
         data = np.random.uniform(-1,1,size=(size,n))
     elif datatype == "sample":
