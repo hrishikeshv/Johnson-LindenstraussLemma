@@ -10,7 +10,8 @@ def randomSubspace(subspaceDimension, ambientDimension, method="gaussian"):
         return np.random.normal(0, 1, size=(subspaceDimension, ambientDimension))
     elif method == "circulant":
         cmatrix = circulant(np.random.normal(0, 1, ambientDimension))[:subspaceDimension]
-        dmatrix = np.diag(bernoulli.rvs(0.5,ambientDimension))
+        custm = stats.rv_discrete(values=([-1,1],[1.0/2, 1.0/2]))
+        dmatrix = np.diag(custm.rvs(size=ambientDimension))
         return cmatrix.dot(dmatrix)
     elif method == "sparse":
         custm = stats.rv_discrete(values=([-1,0,1],[1.0/6,2.0/3,1.0/6]))
@@ -46,17 +47,17 @@ if __name__ == '__main__':
     size = 1000
     n = 4096
     eps = 0.05
-    method = "sparse"
-    datatype = "dense"
+    method = "circulant"
+    datatype = "data"
     if method == "gaussian":
         subspaceDim = int(math.ceil(2.0*math.log(size)/eps**2))
     elif method == "sparse":
         subspaceDim = int(math.ceil(2.0*math.log(size)/eps**2))
     elif method == "circulant":
-        subspaceDim = int(math.ceil((math.log(size)**2)/eps**2))
+        subspaceDim = int(math.ceil(2.0*(math.log(size))/eps**2))
     if datatype == "dense":
         data = np.random.uniform(-1,1,size=(size,n))
-    elif datatype == "sample":
+    elif datatype == "sparse":
         indlist = np.random.choice(n, 10, replace=False)
         data = np.zeros((size,n))
         for ind in indlist:
