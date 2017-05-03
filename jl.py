@@ -8,6 +8,7 @@ from scipy.linalg import hadamard
 import argparse
 
 def randomSubspace(subspaceDimension, ambientDimension, method="gaussian", q=3.0):
+    print(method)
     if method == "gaussian":
         return np.random.normal(0, 1, size=(subspaceDimension, ambientDimension))
     elif method == "circulant":
@@ -16,7 +17,7 @@ def randomSubspace(subspaceDimension, ambientDimension, method="gaussian", q=3.0
         dmatrix = np.diag(custm.rvs(size=ambientDimension))
         return cmatrix.dot(dmatrix)
     elif method == "sparse":
-        custm = stats.rv_discrete(values=([-1,0,1],[1/(2*q),1-(1/q),1/(2*q)]))
+        custm = stats.rv_discrete(values=([-1,0,1],[1.0/(2*q),1-(1.0/q),1.0/(2*q)]))
         return math.sqrt(q)*custm.rvs(size=(subspaceDimension, ambientDimension))
     elif method == "hadamard":
         P = np.random.normal(0, 1, size=(subspaceDimension, ambientDimension))
@@ -62,10 +63,10 @@ def checkTheorem(oldData, newData, epsilon):
         if abs(oldNorm / newNorm- 1) > epsilon:
             numBadPoints += 1
 
-#    plt.hist(error, 20)
-#    plt.show()
-    return error
-#    return (1.0*numBadPoints)/count
+    plt.hist(error, 20)
+    plt.show()
+#return error
+    return (1.0*numBadPoints)/count
 
 def jl(data, subspaceDim, method, q=3.0):
     origDim = len(data[0])
@@ -95,6 +96,7 @@ if __name__ == '__main__':
     parser.add_argument('--size', type=int, default=1000)
     parser.add_argument('--n', type=int, default=4096)
     parser.add_argument('--eps', type=float, default=0.25)
+    args = parser.parse_args()
     size = args.size
     n = args.n
     eps = args.eps
@@ -112,5 +114,5 @@ if __name__ == '__main__':
         for ind in indlist:
             data[:,ind] = np.random.uniform(-1,1,size)
     print(subspaceDim)
-    trans = jl(data,subspaceDim,method)
+    trans = jl(data,subspaceDim,method,3.0)
     print(checkTheorem(data, trans, eps))
