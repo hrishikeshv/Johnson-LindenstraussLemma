@@ -1,1 +1,1 @@
-# Johnson-Lindenstrauss lemma and its Variants
+# Johnson-Lindenstrauss lemma and its variants
